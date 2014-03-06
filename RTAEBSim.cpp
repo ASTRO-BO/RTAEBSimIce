@@ -5,10 +5,9 @@
 int RTAEBSim::run(int argc, char* argv[])
 {
 	// check arguments
-	if(argc > 3)
+	if(argc != 3)
 	{
-		std::cerr << argv[0] << ": wrong number of arguments" << std::endl;
-		std::cerr << "Usage:" << std::endl;
+		std::cerr << "Error: wrong number of arguments. Usage:" << std::endl;
 		std::cerr << "./RTAEBSim file.stream file.raw" << std::endl;
 		return EXIT_FAILURE;
 	}
