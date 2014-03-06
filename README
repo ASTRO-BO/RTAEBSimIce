@@ -1,0 +1,9 @@
+This RTAEBSim application loads a packet from file and send it to the RTAReceiver using the Ice RTAReceiver interface.
+
+To build just execute:
+
+  $ make
+
+To run you need to provide the telemetry description and the raw file.
+
+  $ ./RTAEBSim file.stream file.raw
