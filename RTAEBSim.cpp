@@ -28,7 +28,7 @@ int RTAEBSim::run(int argc, char* argv[])
 	}
 
 	// get a RTAReceiver proxy
-	CTA::RTAReceiverPrx receiver = CTA::RTAReceiverPrx::checkedCast(communicator()->propertyToProxy("Receiver.Proxy"));
+	CTA::RTAReceiverPrx receiver = CTA::RTAReceiverPrx::checkedCast(communicator()->propertyToProxy("RTAReceiver.Proxy"));
 	if(!receiver)
 	{
 		std::cerr << argv[0] << ": invalid proxy" << std::endl;

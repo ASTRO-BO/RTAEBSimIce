@@ -1,9 +1,9 @@
 Ice.MessageSizeMax=1000000000
 #
 # The client reads this property to create the reference to the
-# "Throughput" object in the server.
+# "RTAReceiver" object in the server.
 #
-Throughput.Proxy=throughput:default -p 10000 -h localhost
+RTAReceiver.Proxy=receiver:default -p 10000 -h localhost
 
 #
 # Disable client-side ACM.
