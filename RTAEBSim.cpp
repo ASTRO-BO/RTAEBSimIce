@@ -16,16 +16,21 @@
 #include "RTAEBSim.h"
 #include <RTAReceiver.h>
 #include <CTAPacketBufferV.h>
+#include <cstdlib>
 
 int RTAEBSim::run(int argc, char* argv[])
 {
 	// check arguments
-	if(argc != 3)
+	if(argc < 3 || argc > 4)
 	{
 		std::cerr << "Error: wrong number of arguments. Usage:" << std::endl;
-		std::cerr << "./RTAEBSim file.stream file.raw" << std::endl;
+		std::cerr << "./RTAEBSim file.stream file.raw [delay (msec)]" << std::endl;
 		return EXIT_FAILURE;
 	}
+
+	int msecs = 10;
+	if(argc == 4)
+		msecs = std::atoi(argv[3]);
 
 	// get a RTAReceiver proxy
 	CTA::RTAReceiverPrx receiver = CTA::RTAReceiverPrx::checkedCast(communicator()->propertyToProxy("RTAReceiver.Proxy"));
@@ -47,8 +52,9 @@ int RTAEBSim::run(int argc, char* argv[])
 		// copy to a ByteSeq
 		CTA::ByteSeq seq;
 		size_t buffsize = buffPtr->getDimension();
-		seq.reserve(buffsize);
+		seq.resize(buffsize);
 		memcpy(&seq[0], buffPtr->getStream(), buffsize);
+		usleep(msecs*1000);
 		// send to the RTAReceiver
 		receiverOneway->send(seq);
 	}
