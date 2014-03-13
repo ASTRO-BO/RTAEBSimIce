@@ -93,7 +93,7 @@ int RTAEBSim::run(int argc, char* argv[])
 			std::cout << "Sending rate to the monitor" << std::endl;
 
 			rate.timestamp = currF;
-			rate.value = counter * buffsize / (elapsed * 1000000.0f);
+			rate.value = counter * buffsize * 1000.0f / elapsed; // kb/s
 			monitor->sendParameter(rate);
 
 			prevF = rate.timestamp;
