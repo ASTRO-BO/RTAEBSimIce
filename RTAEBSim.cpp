@@ -86,7 +86,7 @@ int RTAEBSim::run(int argc, char* argv[])
 		counter++;
 
 		// send data to the monitor once per second
-		double elapsed = rate.timestamp-prevF;
+		double elapsed = currF-prevF;
 
 		if(monitor && elapsed > 1000000.0f)
 		{
