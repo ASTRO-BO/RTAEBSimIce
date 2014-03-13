@@ -15,7 +15,8 @@
 
 #include "RTAEBSim.h"
 #include <RTAReceiver.h>
-#include <CTAPacketBufferV.h>
+#include <CTAStream.h>
+#include <packet/PacketBufferV.h>
 #include <cstdlib>
 
 int RTAEBSim::run(int argc, char* argv[])
@@ -42,8 +43,10 @@ int RTAEBSim::run(int argc, char* argv[])
 	CTA::RTAReceiverPrx receiverOneway = CTA::RTAReceiverPrx::uncheckedCast(receiver->ice_oneway());
 
 	// load the raw file.
-	RTATelem::CTAPacketBufferV buff(argv[1], argv[2]);
+	RTATelem::CTAStream stream(argv[1], argv[2], "");
+	PacketLib::PacketBufferV buff(argv[1], argv[2]);
 	buff.load();
+	std::cout << "Loaded buffer of " << buff.size() << " packets." << std::endl;
 
 	for(int i=0; i<buff.size(); i++)
 	{
@@ -51,7 +54,7 @@ int RTAEBSim::run(int argc, char* argv[])
 		PacketLib::ByteStreamPtr buffPtr = buff.getNext();
 		// copy to a ByteSeq
 		CTA::ByteSeq seq;
-		size_t buffsize = buffPtr->getDimension();
+		size_t buffsize = stream.getInputPacketDimension(buffPtr);
 		seq.resize(buffsize);
 		memcpy(&seq[0], buffPtr->getStream(), buffsize);
 		usleep(msecs*1000);
