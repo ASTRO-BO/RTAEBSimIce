@@ -29,7 +29,7 @@ int RTAEBSim::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	unsigned int msecs = 10;
+	unsigned int msecs = 0;
 	if(argc == 4)
 		msecs = std::atoi(argv[3]);
 
@@ -61,42 +61,48 @@ int RTAEBSim::run(int argc, char* argv[])
 	rate.apid = 0;
 	rate.type = 0;
 
-	struct timeval prev;
-	gettimeofday(&prev, 0);
-	double prevF = (prev.tv_sec * 1000000.0) + prev.tv_usec;
-	int counter = 0;
+	IceUtil::Time prec = IceUtil::Time::now(IceUtil::Time::Monotonic);
+	size_t buffTotSize = 0;
+	long int counter = 0;
+
+	CTA::ByteSeq seq;
 	while(1)
 	{
-		struct timeval curr;
-		gettimeofday(&curr, 0);
-		double currF = (curr.tv_sec * 1000000.0) + curr.tv_usec;
+		IceUtil::Time now = IceUtil::Time::now(IceUtil::Time::Monotonic);
 
 		// get a Packet
 		PacketLib::ByteStreamPtr buffPtr = buff.getNext();
 
 		// copy to a ByteSeq
-		CTA::ByteSeq seq;
 		size_t buffsize = buffPtr->size();
 		seq.resize(buffsize);
 		memcpy(&seq[0], buffPtr->getStream(), buffsize);
 		usleep(msecs*1000);
 
 		// send data to the RTAReceiver
-		receiverOneway->begin_send(seq);
+		Ice::AsyncResultPtr r = receiverOneway->begin_send(seq);
+		r->waitForSent();
+		buffTotSize+=buffsize;
 		counter++;
 
 		// send data to the monitor once per second
-		double elapsed = currF-prevF;
+		IceUtil::Time elapsed = now-prec;
+		double elapsedUs = elapsed.toMicroSeconds();
 
-		if(monitor && elapsed > 1000000.0f)
+		if(monitor && elapsedUs > 1000000.0f)
 		{
 			std::cout << "Sending rate to the monitor" << std::endl;
+			std::cout << "total size = " << buffTotSize << std::endl;
+			std::cout << "buffsize = " << buffsize << std::endl;
+			std::cout << "elapsed (us) = " << elapsedUs << std::endl;
+			std::cout << "Packet/s = " << counter * 1000000.0 / elapsedUs << std::endl;
 
-			rate.timestamp = currF;
-			rate.value = counter * buffsize * 1000.0f / elapsed; // kb/s
+			rate.timestamp = now.toMicroSeconds();
+			rate.value = buffTotSize * 8.0 / (elapsedUs); // MiB/s
 			monitor->sendParameter(rate);
 
-			prevF = rate.timestamp;
+			prec = now;
+			buffTotSize = 0;
 			counter = 0;
 		}
 	}
