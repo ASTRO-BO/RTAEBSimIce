@@ -5,6 +5,9 @@ Ice.MessageSizeMax=1000000000
 #
 RTAReceiver.Proxy=receiver:default -p 10000 -h localhost
 
+
+RTAMonitor.Proxy=monitor:default -p 20000 -h localhost
+
 #
 # Disable client-side ACM.
 #

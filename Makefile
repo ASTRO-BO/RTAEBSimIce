@@ -15,8 +15,8 @@
 
 top_srcdir = .
 
-SLICE_SRCS = RTAReceiver.ice
-OBJS       = RTAReceiver.o
+SLICE_SRCS = RTAReceiver.ice RTAMonitor.ice
+OBJS       = RTAReceiver.o RTAMonitor.o
 
 CLIENT     = RTAEBSim
 COBJS      = $(CLIENT).o

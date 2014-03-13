@@ -15,8 +15,9 @@
 
 #include "RTAEBSim.h"
 #include <RTAReceiver.h>
+#include <RTAMonitor.h>
 #include <packet/PacketBufferV.h>
-#include <cstdlib>
+#include <ctime>
 
 int RTAEBSim::run(int argc, char* argv[])
 {
@@ -28,7 +29,7 @@ int RTAEBSim::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	int msecs = 10;
+	unsigned int msecs = 10;
 	if(argc == 4)
 		msecs = std::atoi(argv[3]);
 
@@ -41,23 +42,63 @@ int RTAEBSim::run(int argc, char* argv[])
 	}
 	CTA::RTAReceiverPrx receiverOneway = CTA::RTAReceiverPrx::uncheckedCast(receiver->ice_oneway());
 
+	// get a RTAMonitor proxy
+	CTA::RTAMonitorPrx monitor = 0;
+	try
+	{
+		 monitor = CTA::RTAMonitorPrx::checkedCast(communicator()->propertyToProxy("RTAMonitor.Proxy"))->ice_oneway();
+	}
+	catch(...)
+	{
+	}
+
 	// load the raw file.
 	PacketLib::PacketBufferV buff(argv[1], argv[2]);
 	buff.load();
 	std::cout << "Loaded buffer of " << buff.size() << " packets." << std::endl;
 
+	CTA::Parameter rate;
+	rate.apid = 0;
+	rate.type = 0;
+
+	struct timeval prev;
+	gettimeofday(&prev, 0);
+	double prevF = (prev.tv_sec * 1000000.0) + prev.tv_usec;
+	int counter = 0;
 	while(1)
 	{
+		struct timeval curr;
+		gettimeofday(&curr, 0);
+		double currF = (curr.tv_sec * 1000000.0) + curr.tv_usec;
+
 		// get a Packet
 		PacketLib::ByteStreamPtr buffPtr = buff.getNext();
+
 		// copy to a ByteSeq
 		CTA::ByteSeq seq;
 		size_t buffsize = buffPtr->size();
 		seq.resize(buffsize);
 		memcpy(&seq[0], buffPtr->getStream(), buffsize);
 		usleep(msecs*1000);
-		// send to the RTAReceiver
+
+		// send data to the RTAReceiver
 		receiverOneway->send(seq);
+		counter++;
+
+		// send data to the monitor once per second
+		double elapsed = rate.timestamp-prevF;
+
+		if(monitor && elapsed > 1000000.0f)
+		{
+			std::cout << "Sending rate to the monitor" << std::endl;
+
+			rate.timestamp = currF;
+			rate.value = counter * buffsize / (elapsed * 1000000.0f);
+			monitor->sendParameter(rate);
+
+			prevF = rate.timestamp;
+			counter = 0;
+		}
 	}
 
 	return EXIT_SUCCESS;
