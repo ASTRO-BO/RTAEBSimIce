@@ -82,7 +82,7 @@ int RTAEBSim::run(int argc, char* argv[])
 		usleep(msecs*1000);
 
 		// send data to the RTAReceiver
-		receiverOneway->send(seq);
+		receiverOneway->begin_send(seq);
 		counter++;
 
 		// send data to the monitor once per second
