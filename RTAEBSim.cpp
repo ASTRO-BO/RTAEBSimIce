@@ -46,7 +46,7 @@ int RTAEBSim::run(int argc, char* argv[])
 	buff.load();
 	std::cout << "Loaded buffer of " << buff.size() << " packets." << std::endl;
 
-	for(int i=0; i<buff.size(); i++)
+	while(1)
 	{
 		// get a Packet
 		PacketLib::ByteStreamPtr buffPtr = buff.getNext();
