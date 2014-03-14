@@ -14,6 +14,7 @@
  ***************************************************************************/
 
 #include "RTAEBSim.h"
+#include "RTAMonitorThread.h"
 #include <RTAReceiver.h>
 #include <RTAMonitor.h>
 #include <packet/PacketBufferV.h>
@@ -52,59 +53,34 @@ int RTAEBSim::run(int argc, char* argv[])
 	{
 	}
 
+	// start the MonitorThread
+	size_t byteSent = 0;
+	IceUtil::Mutex mutex;
+	RTAMonitorThread monitorThread(monitor, byteSent, mutex);
+	monitorThread.start();
+
 	// load the raw file.
 	PacketLib::PacketBufferV buff(argv[1], argv[2]);
 	buff.load();
 	std::cout << "Loaded buffer of " << buff.size() << " packets." << std::endl;
 
-	CTA::Parameter rate;
-	rate.apid = 0;
-	rate.type = 0;
-
-	IceUtil::Time prec = IceUtil::Time::now(IceUtil::Time::Monotonic);
-	size_t buffTotSize = 0;
-	long int counter = 0;
-
-	CTA::ByteSeq seq;
 	while(1)
 	{
-		IceUtil::Time now = IceUtil::Time::now(IceUtil::Time::Monotonic);
-
 		// get a Packet
 		PacketLib::ByteStreamPtr buffPtr = buff.getNext();
 
-		// copy to a ByteSeq
-		size_t buffsize = buffPtr->size();
-		seq.resize(buffsize);
-		memcpy(&seq[0], buffPtr->getStream(), buffsize);
+		// wait a little
 		usleep(msecs*1000);
 
 		// send data to the RTAReceiver
-		Ice::AsyncResultPtr r = receiverOneway->begin_send(seq);
-		r->waitForSent();
-		buffTotSize+=buffsize;
-		counter++;
+		size_t buffsize = buffPtr->size();
+		std::pair<unsigned char*, unsigned char*> seqPtr(buffPtr->getStream(), buffPtr->getStream()+buffsize);
+		receiverOneway->send(seqPtr);
 
-		// send data to the monitor once per second
-		IceUtil::Time elapsed = now-prec;
-		double elapsedUs = elapsed.toMicroSeconds();
-
-		if(monitor && elapsedUs > 1000000.0f)
-		{
-			std::cout << "Sending rate to the monitor" << std::endl;
-			std::cout << "total size = " << buffTotSize << std::endl;
-			std::cout << "buffsize = " << buffsize << std::endl;
-			std::cout << "elapsed (us) = " << elapsedUs << std::endl;
-			std::cout << "Packet/s = " << counter * 1000000.0 / elapsedUs << std::endl;
-
-			rate.timestamp = now.toMicroSeconds();
-			rate.value = buffTotSize * 8.0 / (elapsedUs); // MiB/s
-			monitor->sendParameter(rate);
-
-			prec = now;
-			buffTotSize = 0;
-			counter = 0;
-		}
+		// byte sent used only to send the rate to the Monitor
+		mutex.lock();
+		byteSent += buffsize;
+		mutex.unlock();
 	}
 
 	return EXIT_SUCCESS;

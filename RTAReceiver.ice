@@ -22,7 +22,7 @@ sequence<byte> ByteSeq;
 
 interface RTAReceiver
 {
-	idempotent void send(ByteSeq seq);
+	idempotent void send(["cpp:array"]ByteSeq seq);
 };
 
 };
