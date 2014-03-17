@@ -44,22 +44,24 @@ public:
 			double elapsedUs = elapsed.toMicroSeconds();
 			if(elapsedUs > 1000000.0f)
 			{
-				CTA::Parameter rate;
-				rate.apid = 0;
-				rate.type = 0;
 
-				std::cout << "total size = " << _byteSent << std::endl;
-				std::cout << "elapsed (us) = " << elapsedUs << std::endl;
-
-				rate.timestamp = now.toMicroSeconds();
-				rate.value = _byteSent * 8.0 / (elapsedUs); // mbit
-
-				std::cout << "throughput: " << std::setprecision(5) << rate.value << "Mbps" << std::endl;
 
 				if(_monitor)
 				{
-					std::cout << "Sending rate to the monitor" << std::endl;
+					CTA::Parameter rate;
+					rate.apid = 0;
+					rate.type = 0;
+
+					rate.timestamp = now.toMicroSeconds();
+					rate.value = _byteSent / elapsedUs;
+
 					_monitor->sendParameter(rate);
+				}
+				else
+				{
+					/*std::cout << "total size = " << _byteSent << std::endl;
+					std::cout << "elapsed (us) = " << elapsedUs << std::endl;*/
+					std::cout << "throughput: " << std::setprecision(5) << _byteSent / elapsedUs << "MB/s" << std::endl;
 				}
 
 				prec = now;
