@@ -63,8 +63,9 @@ public:
 				}
 
 				prec = now;
-				// TODO lock here! Not thread safe.
+				_mutex.lock();
 				_byteSent = 0;
+				_mutex.unlock();
 			}
 		}
 	}
