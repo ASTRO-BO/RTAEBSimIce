@@ -19,6 +19,28 @@
 #include <RTAMonitor.h>
 #include <packet/PacketBufferV.h>
 #include <ctime>
+#include "mac_clock_gettime.h"
+
+struct timespec start, stop;
+unsigned long totbytes;
+
+void end(int ntimefilesize=1) {
+	clock_gettime( CLOCK_MONOTONIC, &stop);
+	double time = timediff(start, stop);
+	//std::cout << "Read " << ncycread << " ByteSeq: MB/s " << (float) (ncycread * Demo::ByteSeqSize / time) / 1048576 << std::endl;
+	cout << "Result: it took  " << time << " s" << endl;
+	cout << "Result: rate: " << setprecision(10) << totbytes / 1000000 / time << " MiB/s" << endl;
+	cout << totbytes << endl;
+	//exit(1);
+}
+
+double rate() {
+	clock_gettime( CLOCK_MONOTONIC, &stop);
+	double time = timediff(start, stop);
+	//std::cout << "Read " << ncycread << " ByteSeq: MB/s " << (float) (ncycread * Demo::ByteSeqSize / time) / 1048576 << std::endl;
+	//cout << "Result: it took  " << time << " s" << endl;
+	return totbytes / 1000000 / time;
+}
 
 int RTAEBSim::run(int argc, char* argv[])
 {
@@ -54,35 +76,61 @@ int RTAEBSim::run(int argc, char* argv[])
 	}
 
 	// start the MonitorThread
+	
 	size_t byteSent = 0;
 	IceUtil::Mutex mutex;
 	RTAMonitorThread monitorThread(monitor, byteSent, mutex);
 	monitorThread.start();
-
+	
 	// load the raw file.
 	PacketLib::PacketBufferV buff(argv[1], argv[2]);
 	buff.load();
 	std::cout << "Loaded buffer of " << buff.size() << " packets." << std::endl;
 
+	
+	
+	long npacketssent = 0;
+	totbytes = 0;
+	
+	clock_gettime( CLOCK_MONOTONIC, &start);
+	//npacketssent<1000
+	PacketLib::ByteStreamPtr buffPtr = buff.getNext();
+	size_t buffsize = buffPtr->size();
+	std::pair<unsigned char*, unsigned char*> seqPtr(buffPtr->getStream(), buffPtr->getStream()+buffsize);
 	while(1)
 	{
 		// get a Packet
-		PacketLib::ByteStreamPtr buffPtr = buff.getNext();
-
+		//PacketLib::ByteStreamPtr buffPtr = buff.getNext();
+		
+		
 		// wait a little
-		usleep(msecs*1000);
+		//usleep(msecs*1000);
 
 		// send data to the RTAReceiver
 		size_t buffsize = buffPtr->size();
+		totbytes += buffsize;
 		std::pair<unsigned char*, unsigned char*> seqPtr(buffPtr->getStream(), buffPtr->getStream()+buffsize);
-		receiverOneway->send(seqPtr);
-
+		Ice::AsyncResultPtr rr = receiverOneway->begin_send(seqPtr);
+		rr->waitForSent();
+		npacketssent++;
+		
 		// byte sent used only to send the rate to the Monitor
+		
 		mutex.lock();
 		byteSent += buffsize;
 		mutex.unlock();
-	}
+		
+		if(npacketssent == 100000) {
+			//monitor->sendParameter(rate());
+			cout << setprecision(10) << rate() << " MB/s" << endl;
+			totbytes = 0;
+			npacketssent = 0;
+			clock_gettime( CLOCK_MONOTONIC, &start);
+		}
 
+		
+	}
+	end();
 	return EXIT_SUCCESS;
 }
 
