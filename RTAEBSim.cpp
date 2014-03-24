@@ -94,13 +94,14 @@ int RTAEBSim::run(int argc, char* argv[])
 	
 	clock_gettime( CLOCK_MONOTONIC, &start);
 	//npacketssent<1000
-	PacketLib::ByteStreamPtr buffPtr = buff.getNext();
+	/*PacketLib::ByteStreamPtr buffPtr = buff.getNext();
 	size_t buffsize = buffPtr->size();
 	std::pair<unsigned char*, unsigned char*> seqPtr(buffPtr->getStream(), buffPtr->getStream()+buffsize);
+	*/
 	while(1)
 	{
 		// get a Packet
-		//PacketLib::ByteStreamPtr buffPtr = buff.getNext();
+		PacketLib::ByteStreamPtr buffPtr = buff.getNext();
 		
 		
 		// wait a little
