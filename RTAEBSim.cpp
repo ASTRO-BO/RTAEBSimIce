@@ -38,15 +38,15 @@ int RTAEBSim::initShm() {
 	unsigned char* shm = (unsigned char*) shmat(shmid, NULL, 0);
 	unsigned char* shmPtr = shm;
 	
-	// Create semaphores
-	full = sem_open(semFullName, O_CREAT, 0644, 0);
+	// Open semaphores
+	full = sem_open(semFullName, O_RDWR);
 	if (full == SEM_FAILED) {
-		cerr << "Unable to create full semaphore" << endl;
+		cerr << "Unable to open full semaphore" << endl;
 		return 0;
 	}
-	empty = sem_open(semEmptyName, O_CREAT, 0644, 1);
+	empty = sem_open(semEmptyName, O_RDWR);
 	if (empty == SEM_FAILED) {
-		cerr << "Unable to create empty semaphore" << endl;
+		cerr << "Unable to open empty semaphore" << endl;
 		return 0;
 	}
 	
