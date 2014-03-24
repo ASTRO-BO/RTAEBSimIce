@@ -21,6 +21,54 @@
 #include <ctime>
 #include "mac_clock_gettime.h"
 
+#ifdef USESHM
+// shm
+#include "shm_common.h"
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+int RTAEBSim::initShm() {
+	// Create a virtual memory from the shm (of key shmKey)
+	key_t key = shmKey;
+	int shmid = shmget(key, shmSize, IPC_CREAT | 0666);
+	if (shmid < 0) {
+		cerr << "Failure in shmget" << endl;
+		return 0;
+	}
+	unsigned char* shm = (unsigned char*) shmat(shmid, NULL, 0);
+	unsigned char* shmPtr = shm;
+	
+	// Create semaphores
+	full = sem_open(semFullName, O_CREAT, 0644, 0);
+	if (full == SEM_FAILED) {
+		cerr << "Unable to create full semaphore" << endl;
+		return 0;
+	}
+	empty = sem_open(semEmptyName, O_CREAT, 0644, 1);
+	if (empty == SEM_FAILED) {
+		cerr << "Unable to create empty semaphore" << endl;
+		return 0;
+	}
+	
+	// set test and calcalg value in the shm
+	//TODO check the following values
+	*((int*)shmPtr) = 0;
+	shmPtr += sizeof(int);
+	*((bool*)shmPtr) = 0;
+	shmPtr += sizeof(bool);
+	*((bool*)shmPtr) = 0;
+	shmPtr += sizeof(bool);
+	
+	sizeShmPtr = (dword*)shmPtr;
+	bufferShmPtr = (byte*)shmPtr+sizeof(dword);
+	
+	cout << "SHM initialized" << endl;
+	return 1;
+	
+}
+
+#endif
+
 struct timespec start, stop;
 unsigned long totbytes;
 
@@ -42,8 +90,10 @@ double rate() {
 	return totbytes / 1000000 / time;
 }
 
+
 int RTAEBSim::run(int argc, char* argv[])
 {
+	cout << "Start EB Sim" << endl;
 	// check arguments
 	if(argc < 3 || argc > 4)
 	{
@@ -56,6 +106,7 @@ int RTAEBSim::run(int argc, char* argv[])
 	if(argc == 4)
 		msecs = std::atoi(argv[3]);
 
+#ifndef USESHM
 	// get a RTAReceiver proxy
 	CTA::RTAReceiverPrx receiver = CTA::RTAReceiverPrx::checkedCast(communicator()->propertyToProxy("RTAReceiver.Proxy"));
 	if(!receiver)
@@ -64,7 +115,8 @@ int RTAEBSim::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 	CTA::RTAReceiverPrx receiverOneway = CTA::RTAReceiverPrx::uncheckedCast(receiver->ice_oneway());
-
+#endif
+	
 	// get a RTAMonitor proxy
 	CTA::RTAMonitorPrx monitor = 0;
 	try
@@ -98,6 +150,9 @@ int RTAEBSim::run(int argc, char* argv[])
 	size_t buffsize = buffPtr->size();
 	std::pair<unsigned char*, unsigned char*> seqPtr(buffPtr->getStream(), buffPtr->getStream()+buffsize);
 	*/
+#ifdef USESHM
+	initShm();
+#endif
 	while(1)
 	{
 		// get a Packet
@@ -111,8 +166,24 @@ int RTAEBSim::run(int argc, char* argv[])
 		size_t buffsize = buffPtr->size();
 		totbytes += buffsize;
 		std::pair<unsigned char*, unsigned char*> seqPtr(buffPtr->getStream(), buffPtr->getStream()+buffsize);
+		
+		
+#ifndef USESHM
+		//Ice
 		Ice::AsyncResultPtr rr = receiverOneway->begin_send(seqPtr);
 		rr->waitForSent();
+#endif
+		
+#ifdef USESHM
+		//SHM TODO check
+		cout << "1" << endl;
+		sem_wait(empty);
+		cout << "2" << endl;
+		*sizeShmPtr = buffsize*sizeof(byte);
+		memcpy(bufferShmPtr, buffPtr->getStream(), buffsize*sizeof(byte));
+		sem_post(full);
+		cout << "3" << endl;
+#endif
 		npacketssent++;
 		
 		// byte sent used only to send the rate to the Monitor

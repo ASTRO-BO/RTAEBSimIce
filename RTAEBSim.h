@@ -15,10 +15,33 @@
 
 #include <Ice/Ice.h>
 
+#include <packet/PacketLibDefinition.h>
+using namespace PacketLib;
+
+#define USESHM 1
+
+#ifdef USESHM
+// semaphore
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <semaphore.h>
+#endif
+
 class RTAEBSim : public Ice::Application
 {
 public:
 
     RTAEBSim(){}
     virtual int run(int, char*[]);
+	
+#ifdef USESHM
+	int initShm();
+	
+protected:
+	sem_t* full;
+	sem_t* empty;
+	dword* sizeShmPtr;
+	byte* bufferShmPtr;
+#endif
+	
 };
