@@ -18,7 +18,7 @@
 #include <packet/PacketLibDefinition.h>
 using namespace PacketLib;
 
-#define USESHM 1
+//#define USESHM 1
 
 #ifdef USESHM
 // semaphore
