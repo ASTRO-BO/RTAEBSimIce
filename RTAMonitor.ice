@@ -39,6 +39,7 @@ interface RTAMonitor
 {
 	idempotent void sendParameter(Parameter param);
 	idempotent void sendLog(LogMessage msg);
+	idempotent void registerApp(int apid);
 };
 
 };

@@ -151,6 +151,9 @@ int RTAEBSim::run(int argc, char* argv[])
 	{
 	}
 
+	// register to the RTAMonitor to receiver commands
+	monitor->registerApp(APID);
+
 	// start the MonitorThread
 	
 	size_t byteSent = 0;
@@ -217,7 +220,6 @@ int RTAEBSim::run(int argc, char* argv[])
 		mutex.unlock();
 		
 		if(npacketssent == 100000) {
-			//monitor->sendParameter(rate());
 			cout << setprecision(10) << rate() << " MB/s" << endl;
 			totbytes = 0;
 			npacketssent = 0;

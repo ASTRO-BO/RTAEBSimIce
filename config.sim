@@ -1,6 +1,6 @@
 Ice.MessageSizeMax=1000000000
 
-RTACommand.Endpoints=command:default -p 30000 -h localhost
+RTACommand.Endpoints=default -p 30000 -h localhost
 
 RTAReceiver.Proxy=receiver:default -p 10000 -h localhost
 
@@ -14,6 +14,6 @@ Ice.ACM.Client=0
 ##
 # IceMX configuration.
 #
-Ice.Admin.InstanceName=client
+Ice.Admin.InstanceName=command
 IceMX.Metrics.Debug.GroupBy=id
 IceMX.Metrics.ByParent.GroupBy=parent

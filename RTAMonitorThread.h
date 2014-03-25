@@ -21,6 +21,8 @@
 #include <RTAMonitor.h>
 #include <iomanip>
 
+const int APID = 200;
+
 class RTAMonitorThread : public IceUtil::Thread
 {
 public:
@@ -49,7 +51,7 @@ public:
 				if(_monitor)
 				{
 					CTA::Parameter rate;
-					rate.apid = 0;
+					rate.apid = APID;
 					rate.type = 0;
 
 					rate.timestamp = now.toMicroSeconds();
