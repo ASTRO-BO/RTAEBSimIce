@@ -41,7 +41,7 @@ public:
 			IceUtil::Time now = IceUtil::Time::now(IceUtil::Time::Monotonic);
 			IceUtil::Time elapsed = now-prec;
 
-			sleep(3);
+			sleep(1);
 
 			double elapsedUs = elapsed.toMicroSeconds();
 			if(elapsedUs > 1000000.0f)
