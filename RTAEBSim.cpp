@@ -17,6 +17,7 @@
 #include "RTAMonitorThread.h"
 #include <RTAReceiver.h>
 #include <RTAMonitor.h>
+#include <RTACommand.h>
 #include <packet/PacketBufferV.h>
 #include <ctime>
 #include "mac_clock_gettime.h"
@@ -90,6 +91,23 @@ double rate() {
 	return totbytes / 1000000 / time;
 }
 
+class RTACommandI : public CTA::RTACommand
+{
+public:
+	RTACommandI(double* msecsPtr)
+		: _msecsPtr(msecsPtr)
+	{
+	}
+
+	virtual void setSimDelay(Ice::Double msecs, const Ice::Current& cur)
+	{
+		std::cout << "Changed simulation delay to: " << msecs << " msecs" << std::endl;
+		*_msecsPtr = msecs;
+	}
+
+private:
+	double* _msecsPtr;
+};
 
 int RTAEBSim::run(int argc, char* argv[])
 {
@@ -102,9 +120,9 @@ int RTAEBSim::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	unsigned int msecs = 0;
+	double msecs = 0;
 	if(argc == 4)
-		msecs = std::atoi(argv[3]);
+		msecs = std::atof(argv[3]);
 
 #ifndef USESHM
 	// get a RTAReceiver proxy
@@ -116,6 +134,12 @@ int RTAEBSim::run(int argc, char* argv[])
 	}
 	CTA::RTAReceiverPrx receiverOneway = CTA::RTAReceiverPrx::uncheckedCast(receiver->ice_oneway());
 #endif
+
+	// Create an adapter for RTACommand
+    Ice::ObjectAdapterPtr adapter = communicator()->createObjectAdapter("RTACommand");
+    CTA::RTACommandPtr servant = new RTACommandI(&msecs);
+    adapter->add(servant, communicator()->stringToIdentity("command"));
+    adapter->activate();
 	
 	// get a RTAMonitor proxy
 	CTA::RTAMonitorPrx monitor = 0;
@@ -160,7 +184,7 @@ int RTAEBSim::run(int argc, char* argv[])
 		
 		
 		// wait a little
-		//usleep(msecs*1000);
+		usleep(msecs*1000);
 
 		// send data to the RTAReceiver
 		size_t buffsize = buffPtr->size();

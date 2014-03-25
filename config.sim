@@ -1,10 +1,8 @@
 Ice.MessageSizeMax=1000000000
-#
-# The client reads this property to create the reference to the
-# "RTAReceiver" object in the server.
-#
-RTAReceiver.Proxy=receiver:default -p 10000 -h localhost
 
+RTACommand.Endpoints=command:default -p 30000 -h localhost
+
+RTAReceiver.Proxy=receiver:default -p 10000 -h localhost
 
 RTAMonitor.Proxy=monitor:default -p 20000 -h localhost
 
@@ -16,7 +14,6 @@ Ice.ACM.Client=0
 ##
 # IceMX configuration.
 #
-#Ice.Admin.Endpoints=tcp -h localhost -p 10003
 Ice.Admin.InstanceName=client
 IceMX.Metrics.Debug.GroupBy=id
 IceMX.Metrics.ByParent.GroupBy=parent
