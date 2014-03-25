@@ -203,13 +203,13 @@ int RTAEBSim::run(int argc, char* argv[])
 		
 #ifdef USESHM
 		//SHM TODO check
-		cout << "1" << endl;
+		//cout << "1" << endl;
 		sem_wait(empty);
-		cout << "2" << endl;
+		//cout << "2" << endl;
 		*sizeShmPtr = buffsize*sizeof(byte);
 		memcpy(bufferShmPtr, buffPtr->getStream(), buffsize*sizeof(byte));
 		sem_post(full);
-		cout << "3" << endl;
+		//cout << "3" << endl;
 #endif
 		npacketssent++;
 		
