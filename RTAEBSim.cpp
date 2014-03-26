@@ -152,7 +152,8 @@ int RTAEBSim::run(int argc, char* argv[])
 	}
 
 	// register to the RTAMonitor to receiver commands
-	monitor->registerApp(APID);
+	if(monitor)
+		monitor->registerApp(APID);
 
 	// start the MonitorThread
 	
