@@ -94,19 +94,19 @@ double rate() {
 class RTACommandI : public CTA::RTACommand
 {
 public:
-	RTACommandI(double* msecsPtr)
-		: _msecsPtr(msecsPtr)
+	RTACommandI(double* usecsPtr)
+		: _usecsPtr(usecsPtr)
 	{
 	}
 
-	virtual void setSimDelay(Ice::Double msecs, const Ice::Current& cur)
+	virtual void setSimDelay(Ice::Double usecs, const Ice::Current& cur)
 	{
-		std::cout << "Changed simulation delay to: " << msecs << " msecs" << std::endl;
-		*_msecsPtr = msecs;
+		std::cout << "Changed simulation delay to: " << usecs << " usecs" << std::endl;
+		*_usecsPtr = usecs;
 	}
 
 private:
-	double* _msecsPtr;
+	double* _usecsPtr;
 };
 
 int RTAEBSim::run(int argc, char* argv[])
@@ -120,9 +120,9 @@ int RTAEBSim::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	double msecs = 0;
+	double usecs = 0;
 	if(argc == 4)
-		msecs = std::atof(argv[3]);
+		usecs = std::atof(argv[3]);
 
 #ifndef USESHM
 	// get a RTAReceiver proxy
@@ -137,7 +137,7 @@ int RTAEBSim::run(int argc, char* argv[])
 
 	// Create an adapter for RTACommand
     Ice::ObjectAdapterPtr adapter = communicator()->createObjectAdapter("RTACommand");
-    CTA::RTACommandPtr servant = new RTACommandI(&msecs);
+    CTA::RTACommandPtr servant = new RTACommandI(&usecs);
     adapter->add(servant, communicator()->stringToIdentity("command"));
     adapter->activate();
 	
@@ -188,7 +188,7 @@ int RTAEBSim::run(int argc, char* argv[])
 		
 		
 		// wait a little
-		usleep(msecs*1000);
+		usleep(usecs);
 
 		// send data to the RTAReceiver
 		size_t buffsize = buffPtr->size();
