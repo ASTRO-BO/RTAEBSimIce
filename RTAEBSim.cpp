@@ -101,7 +101,7 @@ public:
 
 	virtual void setSimDelay(Ice::Double msecs, const Ice::Current& cur)
 	{
-		std::cout << "Changed simulation delay to: " << msecs << " msecs" << std::endl;
+		std::cout << "Changed simulation delay to: " << msecs << " usecs" << std::endl;
 		*_msecsPtr = msecs;
 	}
 
@@ -116,7 +116,7 @@ int RTAEBSim::run(int argc, char* argv[])
 	if(argc < 3 || argc > 4)
 	{
 		std::cerr << "Error: wrong number of arguments. Usage:" << std::endl;
-		std::cerr << "./RTAEBSim file.stream file.raw [delay (msec)]" << std::endl;
+		std::cerr << "./RTAEBSim file.stream file.raw [delay (usec)]" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -188,8 +188,8 @@ int RTAEBSim::run(int argc, char* argv[])
 		
 		
 		// wait a little
-		usleep(msecs*1000);
-
+		//usleep(msecs*1000);
+		usleep(msecs);
 		// send data to the RTAReceiver
 		size_t buffsize = buffPtr->size();
 		totbytes += buffsize;
