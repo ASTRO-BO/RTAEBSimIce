@@ -13,8 +13,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _MONITOR_THREAD_H
-#define _MONITOR_THREAD_H
+#ifndef _EBSIM_MONITOR_THREAD_H
+#define _EBSIM_MONITOR_THREAD_H
 
 #include <IceUtil/Thread.h>
 #include <iostream>
