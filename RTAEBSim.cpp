@@ -72,13 +72,16 @@ int RTAEBSim::initShm() {
 
 struct timespec start, stop;
 unsigned long totbytes;
+unsigned long sumtotbytes;
+unsigned long npacketssent;
+unsigned long sumnpacketssent;
 
 void end(int ntimefilesize=1) {
 	clock_gettime( CLOCK_MONOTONIC, &stop);
 	double time = timediff(start, stop);
 	//std::cout << "Read " << ncycread << " ByteSeq: MB/s " << (float) (ncycread * Demo::ByteSeqSize / time) / 1048576 << std::endl;
 	cout << "Result: it took  " << time << " s" << endl;
-	cout << "Result: rate: " << setprecision(10) << totbytes / 1000000 / time << " MiB/s" << endl;
+	cout << "Result: rate: " << setprecision(10) << totbytes / 1000000 / time << " MB/s" << endl;
 	cout << totbytes << endl;
 	//exit(1);
 }
@@ -88,8 +91,17 @@ double rate() {
 	double time = timediff(start, stop);
 	//std::cout << "Read " << ncycread << " ByteSeq: MB/s " << (float) (ncycread * Demo::ByteSeqSize / time) / 1048576 << std::endl;
 	//cout << "Result: it took  " << time << " s" << endl;
-	return totbytes / 1000000 / time;
+	return totbytes / (1024*1024) / time;
 }
+
+double ratepacketssent() {
+	clock_gettime( CLOCK_MONOTONIC, &stop);
+	double time = timediff(start, stop);
+	//std::cout << "Read " << ncycread << " ByteSeq: MB/s " << (float) (ncycread * Demo::ByteSeqSize / time) / 1048576 << std::endl;
+	//cout << "Result: it took  " << time << " s" << endl;
+	return npacketssent / time;
+}
+
 
 class RTACommandI : public CTA::RTACommand
 {
@@ -102,6 +114,7 @@ public:
 	virtual void setSimDelay(Ice::Double usecs, const Ice::Current& cur)
 	{
 		std::cout << "Changed simulation delay to: " << usecs << " usecs" << std::endl;
+		std::cout << "Frequency: " << 1.0/usecs << std::endl;
 		*_usecsPtr = usecs;
 	}
 
@@ -136,10 +149,16 @@ int RTAEBSim::run(int argc, char* argv[])
 #endif
 
 	// Create an adapter for RTACommand
-    Ice::ObjectAdapterPtr adapter = communicator()->createObjectAdapter("RTACommand");
-    CTA::RTACommandPtr servant = new RTACommandI(&usecs);
-    adapter->add(servant, communicator()->stringToIdentity("command"));
-    adapter->activate();
+	try
+	{
+		Ice::ObjectAdapterPtr adapter = communicator()->createObjectAdapter("RTACommand");
+		CTA::RTACommandPtr servant = new RTACommandI(&usecs);
+		adapter->add(servant, communicator()->stringToIdentity("command"));
+		adapter->activate();
+	}
+	catch(...)
+	{
+	}
 	
 	// get a RTAMonitor proxy
 	CTA::RTAMonitorPrx monitor = 0;
@@ -169,8 +188,10 @@ int RTAEBSim::run(int argc, char* argv[])
 
 	
 	
-	long npacketssent = 0;
+	npacketssent = 0;
 	totbytes = 0;
+	sumtotbytes = 0;
+	sumnpacketssent = 0;
 	
 	clock_gettime( CLOCK_MONOTONIC, &start);
 	//npacketssent<1000
@@ -193,6 +214,7 @@ int RTAEBSim::run(int argc, char* argv[])
 		// send data to the RTAReceiver
 		size_t buffsize = buffPtr->size();
 		totbytes += buffsize;
+		sumtotbytes += buffsize;
 		std::pair<unsigned char*, unsigned char*> seqPtr(buffPtr->getStream(), buffPtr->getStream()+buffsize);
 		
 		
@@ -213,6 +235,7 @@ int RTAEBSim::run(int argc, char* argv[])
 		//cout << "3" << endl;
 #endif
 		npacketssent++;
+		sumnpacketssent++;
 		
 		// byte sent used only to send the rate to the Monitor
 		
@@ -221,7 +244,11 @@ int RTAEBSim::run(int argc, char* argv[])
 		mutex.unlock();
 		
 		if(npacketssent == 100000) {
-			cout << setprecision(10) << rate() << " MB/s" << endl;
+			cout << setprecision(10) << rate() << " MiB/s" << endl;
+			cout << setprecision(10) << ratepacketssent() << " packets/s" << endl;
+			cout << setprecision(10) << sumtotbytes / (1024*1024*1024) << " GiB " << endl;
+			cout << setprecision(10) << sumnpacketssent << " packets" << endl;
+
 			totbytes = 0;
 			npacketssent = 0;
 			clock_gettime( CLOCK_MONOTONIC, &start);
