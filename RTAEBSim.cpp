@@ -178,8 +178,8 @@ int RTAEBSim::run(int argc, char* argv[])
 	
 	size_t byteSent = 0;
 	IceUtil::Mutex mutex;
-	RTAMonitorThread monitorThread(monitor, byteSent, mutex);
-	monitorThread.start();
+	IceUtil::ThreadPtr monitorThread = new RTAMonitorThread(monitor, byteSent, mutex);
+	monitorThread->start();
 	
 	// load the raw file.
 	PacketLib::PacketBufferV buff(argv[1], argv[2]);

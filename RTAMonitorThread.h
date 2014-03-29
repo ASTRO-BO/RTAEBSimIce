@@ -13,8 +13,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _MONITOR_THREAD_H
-#define _MONITOR_THREAD_H
+#ifndef _EBSIM_MONITOR_THREAD_H
+#define _EBSIM_MONITOR_THREAD_H
 
 #include <IceUtil/Thread.h>
 #include <iostream>
@@ -29,6 +29,9 @@ public:
 
 	RTAMonitorThread(CTA::RTAMonitorPrx& monitor, size_t& byteSent, IceUtil::Mutex& mutex)
 		: _monitor(monitor), _byteSent(byteSent), _mutex(mutex)
+	{
+	}
+	~RTAMonitorThread()
 	{
 	}
 
@@ -57,7 +60,15 @@ public:
 					rate.timestamp = now.toMicroSeconds();
 					rate.value = _byteSent / elapsedUs;
 
-					_monitor->sendParameter(rate);
+					try {
+						_monitor->sendParameter(rate);
+					}
+					catch(Ice::ConnectionRefusedException& e)
+					{
+						// something goes wrong with the monitor
+						std::cout << "The monitor has gone.." << std::endl;
+						return;
+					}
 				}
 				else
 				{
