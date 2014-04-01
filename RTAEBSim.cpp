@@ -149,6 +149,7 @@ int RTAEBSim::run(int argc, char* argv[])
 #endif
 
 	// Create an adapter for RTACommand
+	cout << "rtacommand" << endl;
 	try
 	{
 		Ice::ObjectAdapterPtr adapter = communicator()->createObjectAdapter("RTACommand");
@@ -159,7 +160,7 @@ int RTAEBSim::run(int argc, char* argv[])
 	catch(...)
 	{
 	}
-	
+	cout << "rtamonitor" << endl;
 	// get a RTAMonitor proxy
 	CTA::RTAMonitorPrx monitor = 0;
 	try
@@ -175,17 +176,24 @@ int RTAEBSim::run(int argc, char* argv[])
 		monitor->registerApp(APID);
 
 	// start the MonitorThread
-	
+	cout << "monitor thread" << endl;
 	size_t byteSent = 0;
 	IceUtil::Mutex mutex;
 	IceUtil::ThreadPtr monitorThread = new RTAMonitorThread(monitor, byteSent, mutex);
 	monitorThread->start();
 	
+	cout << "start" << endl;
 	// load the raw file.
-	PacketLib::PacketBufferV buff(argv[1], argv[2]);
-	buff.load();
-	std::cout << "Loaded buffer of " << buff.size() << " packets." << std::endl;
-
+	PacketLib::PacketBufferV* buff;
+	try
+	{
+		buff = new PacketLib::PacketBufferV(argv[1], argv[2]);
+		buff->load();
+		std::cout << "Loaded buffer of " << buff->size() << " packets." << std::endl;
+		
+	} catch(PacketException* e) {
+		cout << e->geterror() << endl;
+	}
 	
 	
 	npacketssent = 0;
@@ -202,10 +210,11 @@ int RTAEBSim::run(int argc, char* argv[])
 #ifdef USESHM
 	initShm();
 #endif
+	
 	while(1)
 	{
 		// get a Packet
-		PacketLib::ByteStreamPtr buffPtr = buff.getNext();
+		PacketLib::ByteStreamPtr buffPtr = buff->getNext();
 		
 		
 		// wait a little

@@ -17,3 +17,5 @@ Ice.ACM.Client=0
 Ice.Admin.InstanceName=command
 IceMX.Metrics.Debug.GroupBy=id
 IceMX.Metrics.ByParent.GroupBy=parent
+
+Ice.ThreadPool.Server.Size=1
