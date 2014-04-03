@@ -27,10 +27,11 @@ class RTAMonitorThread : public IceUtil::Thread
 {
 public:
 
-	RTAMonitorThread(CTA::RTAMonitorPrx& monitor, size_t& byteSent, IceUtil::Mutex& mutex)
-		: _monitor(monitor), _byteSent(byteSent), _mutex(mutex)
+	RTAMonitorThread(CTA::RTAMonitorPrx& monitor, size_t& byteSent, IceUtil::Mutex& mutex, unsigned long& npacketssent)
+	: _monitor(monitor), _byteSent(byteSent), _mutex(mutex), _npacketssent(npacketssent)
 	{
 	}
+	
 	~RTAMonitorThread()
 	{
 	}
@@ -60,8 +61,26 @@ public:
 					rate.timestamp = now.toMicroSeconds();
 					rate.value = _byteSent / elapsedUs;
 
+					CTA::Parameter rateCamera;
+					rateCamera.apid = APID;
+					rateCamera.type = 1;
+					
+					rateCamera.timestamp = now.toMicroSeconds();
+					rateCamera.value = _npacketssent * 1000000 / elapsedUs;
+					
+					
+					CTA::Parameter rateEvents;
+					rateEvents.apid = APID;
+					rateEvents.type = 2;
+					
+					rateEvents.timestamp = now.toMicroSeconds();
+					rateEvents.value = ( _npacketssent * 1000000  / 5.0 ) / elapsedUs;
+					
 					try {
 						_monitor->sendParameter(rate);
+						_monitor->sendParameter(rateCamera);
+						_monitor->sendParameter(rateEvents);
+						
 					}
 					catch(Ice::ConnectionRefusedException& e)
 					{
@@ -80,6 +99,7 @@ public:
 				prec = now;
 				_mutex.lock();
 				_byteSent = 0;
+				_npacketssent = 0;
 				_mutex.unlock();
 			}
 		}
@@ -90,6 +110,7 @@ private:
 	CTA::RTAMonitorPrx& _monitor;
 	size_t& _byteSent;
 	IceUtil::Mutex& _mutex;
+	unsigned long& _npacketssent;
 };
 
 #endif

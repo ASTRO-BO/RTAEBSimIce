@@ -65,7 +65,7 @@ mkshlib     = $(CXX)  -dynamiclib $(shlibldflags) -o $(1) -install_name @rpath/$
 OPENSSL_FLAGS   	= -DMAC_OS_X_VERSION_MIN_REQUIRED=MAC_OS_X_VERSION_10_6
 
 BASELIBS		= -lIceUtil -lpthread 
-LIBS			= -lIce $(BASELIBS)
+LIBS			= -lZerocIce $(BASELIBS)
 
 ICONV_LIB               = -liconv
 

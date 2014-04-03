@@ -74,6 +74,7 @@ struct timespec start, stop;
 unsigned long totbytes;
 unsigned long sumtotbytes;
 unsigned long npacketssent;
+unsigned long npacketssent_thread;
 unsigned long sumnpacketssent;
 
 void end(int ntimefilesize=1) {
@@ -114,7 +115,7 @@ public:
 	virtual void setSimDelay(Ice::Double usecs, const Ice::Current& cur)
 	{
 		std::cout << "Changed simulation delay to: " << usecs << " usecs" << std::endl;
-		std::cout << "Frequency: " << 1.0/usecs << std::endl;
+		//std::cout << "Frequency: " << 1.0/usecs << std::endl;
 		*_usecsPtr = usecs;
 	}
 
@@ -179,7 +180,7 @@ int RTAEBSim::run(int argc, char* argv[])
 	cout << "monitor thread" << endl;
 	size_t byteSent = 0;
 	IceUtil::Mutex mutex;
-	IceUtil::ThreadPtr monitorThread = new RTAMonitorThread(monitor, byteSent, mutex);
+	IceUtil::ThreadPtr monitorThread = new RTAMonitorThread(monitor, byteSent, mutex, npacketssent_thread);
 	monitorThread->start();
 	
 	cout << "start" << endl;
@@ -197,6 +198,7 @@ int RTAEBSim::run(int argc, char* argv[])
 	
 	
 	npacketssent = 0;
+	npacketssent_thread = 0;
 	totbytes = 0;
 	sumtotbytes = 0;
 	sumnpacketssent = 0;
@@ -244,12 +246,14 @@ int RTAEBSim::run(int argc, char* argv[])
 		//cout << "3" << endl;
 #endif
 		npacketssent++;
+		
 		sumnpacketssent++;
 		
 		// byte sent used only to send the rate to the Monitor
 		
 		mutex.lock();
 		byteSent += buffsize;
+		npacketssent_thread++;
 		mutex.unlock();
 		
 		if(npacketssent == 100000) {
