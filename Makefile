@@ -30,6 +30,6 @@ CPPFLAGS := -I. $(CPPFLAGS) $(EXTRA_CPPFLAGS)
 
 LIBS       += -l RTAtelem -l packet
 
-$(CLIENT): $(OBJS)
+$(CLIENT): $(OBJS) $(COBJS)
 	rm -f $@
 	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
