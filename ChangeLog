@@ -1,1 +1,43 @@
-+ working version 2 - 2.5 GB/s
+2014-04-14 Andrea Zoli <zoli@iasfbo.inaf.it>, Andrea Bulgarelli
+<bulgarelli@iasfbo.inaf.it>
+TAG v1.0.0
+* Fix COBJ dependency in Makefile.
+* Added two monitor rate parameters: camera/s and event/s.
+* Ignore connection lost with the RTAMonitor.
+* Changed #ifdef for RTAMonitorThread.
+* Changed usleep parameter from msecs to usecs.
+* Fix registerApp().
+* Set RTAMonitorThread sleep (refresh) to 1s.
+* Add registerApp(APID) Ice interface to RTAMonitor.
+* Set the simulation delay through RTACommand class.
+
+2014-03-22 Andrea Zoli <zoli@iasfbo.inaf.it>, Andrea Bulgarelli
+<bulgarelli@iasfbo.inaf.it>
+TAG v0.2.0
+* working version 2 - 2.5 GB/s
+* Open semaphores instead of create new ones.
+* define USESHM.
+* loop on circular buffer.
+
+2014-03-22 Andrea Zoli <zoli@iasfbo.inaf.it>, Andrea Bulgarelli
+<bulgarelli@iasfbo.inaf.it>
+TAG v0.1.0
+* Sending rate to Monitor OR print to stdout the throuhgput.
+* Fix mutex on byteSent.
+* Use a Thread class to monitor the rate.
+* Use ["cpp:array"]
+* optimization to avoid double copy.
+* Use Ice::Time instead of gettimeofday.
+* Fix rate.
+* Fix elapsed calculation.
+* Use async proxy method.
+* Send rate to the Monitor.
+* Send as infinite loop.
+* Use ByteStream size() method.
+* Using new interface of PacketLib::PacketBufferV instead of
+RTATelem::CTAPacketBufferV.
+* Add timer (msec).
+* Set RMI method to idempotent.
+* Fix Proxy name to RTAReceiver.
+* Add GPL license bloat header.
+* Fixed number of arguments testing (must be 3).
