@@ -276,5 +276,5 @@ int RTAEBSim::run(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
     RTAEBSim sim;
-    return sim.main(argc, argv, "config.sim");
+    return sim.main(argc, argv);
 }
