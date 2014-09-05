@@ -38,9 +38,10 @@ TARGETS    = $(CLIENT)
 
 include $(top_srcdir)/config/Make.rules
 
-CPPFLAGS := -I. $(CPPFLAGS) $(EXTRA_CPPFLAGS)
+CPPFLAGS ?= -O2
+CPPFLAGS += -I.
 
-LIBS       += -l RTAtelem -l packet
+LIBS += -l RTAtelem -l packet
 
 $(CLIENT): $(OBJS) $(COBJS)
 	rm -f $@
