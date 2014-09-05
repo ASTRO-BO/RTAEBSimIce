@@ -31,7 +31,7 @@ ifeq ($(CXX),c++)
    CXX			= g++
 endif
 
-ifeq ($(CXX),g++)
+ifeq ($(CXX),$(filter $(CXX),g++ clang++))
 
     ifneq ($(SUSE_i586),)
         CXXARCHFLAGS	+= -march=i586
@@ -79,7 +79,7 @@ ifeq ($(CXX),g++)
       endif
    endif
 
-   CXXFLAGS		= $(CXXARCHFLAGS) -Wall -Werror -D_REENTRANT
+   CXXFLAGS		= $(CXXARCHFLAGS) -Wall -D_REENTRANT
 
    ifneq ($(GENPIC),no)
       CXXFLAGS		+= -fPIC
