@@ -11,9 +11,9 @@
 # This file is included by Make.rules when uname is Darwin.
 #
 
-CXX			= xcrun clang++
+#CXX			= xcrun clang++
 
-CXXFLAGS		= -Wall -Werror -D_REENTRANT
+#CXXFLAGS		= -Wall  -D_REENTRANT
 
 ifeq ($(OPTIMIZE),yes)
      #
@@ -24,7 +24,7 @@ ifeq ($(OPTIMIZE),yes)
      endif   
      CXXFLAGS		:= $(CXXARCHFLAGS) -O2 -DNDEBUG $(CXXFLAGS)
 else
-     CXXFLAGS		:= $(CXXARCHFLAGS) -O2 $(CXXFLAGS)
+     CXXFLAGS		:= $(CXXARCHFLAGS) -g $(CXXFLAGS)
 endif
 
 ifeq ($(CPP11), yes)
@@ -40,9 +40,9 @@ CXXLIBS		=
 
 LDPLATFORMFLAGS     = -Wl,-rpath,$(RPATH_DIR)
 
-ifeq ($(CXX),g++)
-     LDPLATFORMFLAGS		+= -rdynamic
-endif
+#ifeq ($(CXX),g++)
+#     LDPLATFORMFLAGS		+= -rdynamic
+#endif
 
 
 ifdef ice_src_dist
@@ -64,7 +64,7 @@ mkshlib     = $(CXX)  -dynamiclib $(shlibldflags) -o $(1) -install_name @rpath/$
 #
 OPENSSL_FLAGS   	= -DMAC_OS_X_VERSION_MIN_REQUIRED=MAC_OS_X_VERSION_10_6
 
-BASELIBS		= -lIceUtil -lpthread 
+BASELIBS		= -lZerocIceUtil -lpthread 
 LIBS			= -lZerocIce $(BASELIBS)
 
 ICONV_LIB               = -liconv
